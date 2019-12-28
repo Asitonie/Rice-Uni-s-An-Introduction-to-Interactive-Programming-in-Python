@@ -1,0 +1,176 @@
+"""
+Student code for Word Wrangler game
+"""
+
+import urllib2
+import codeskulptor
+import poc_wrangler_provided as provided
+
+WORDFILE = "assets_scrabble_words3.txt"
+
+
+# Functions to manipulate ordered word lists
+
+def remove_duplicates(list1):
+    """
+    Eliminate duplicates in a sorted list.
+
+    Returns a new sorted list with the same elements in list1, but
+    with no duplicates.
+
+    This function can be iterative.
+    """
+    copy_list = list(list1)
+    for dummy in range(len(list1) - 1):
+        if list1[dummy] == list1[dummy+1]:
+            copy_list.remove(list1[dummy])
+    return copy_list
+
+def intersect(list1, list2):
+    """
+    Compute the intersection of two sorted lists.
+
+    Returns a new sorted list containing only elements that are in
+    both list1 and list2.
+
+    This function can be iterative.
+    """
+    duplicate_list = []
+    list1 = remove_duplicates(list1)
+    list2 = remove_duplicates(list2)
+    for dummy_1 in range(len(list1)):
+        duplicate = False
+        for dummy_2 in range(len(list2)):
+            if list1[dummy_1] == list2[dummy_2]:
+                duplicate = True
+        if duplicate == True:
+            duplicate_list.append(list1[dummy_1])
+            
+    return duplicate_list
+
+# Functions to perform merge sort
+
+def merge(list1, list2):
+    """
+    Merge two sorted lists.
+
+    Returns a new sorted list containing those elements that are in
+    either list1 or list2.
+
+    This function can be iterative.
+    """ 
+    new_list = []
+    list1_copy = list(list1)
+    list2_copy = list(list2)
+    while len(list1_copy) > 0 and len(list2_copy) > 0:    
+        if list1_copy[0] < list2_copy[0]:
+            new_list.append(list1_copy[0])
+            list1_copy.pop(0)
+        elif list1_copy[0] > list2_copy[0]:
+            new_list.append(list2_copy[0])
+            list2_copy.pop(0)
+        else:
+            new_list.append(list1_copy[0])
+            list1_copy.pop(0)
+    if len(list1_copy) == 0 and len(list2_copy) != 0:
+        for word in list2_copy:
+            new_list.append(word)
+    elif len(list2_copy) == 0 and len(list1_copy) != 0:
+        for word in list1_copy:
+            new_list.append(word)
+    return new_list
+def merge_sort(list1):
+    """
+    Sort the elements of list1.
+
+    Return a new sorted list with the same elements as list1.
+
+    This function should be recursive.
+    """
+    length = len(list1)
+    sorted_list = list()
+    if length == 1:
+        return list1
+    elif length == 2:
+        if list1[0] > list1[1]:
+            return [list1[1],list1[0]]
+        elif list1[0] < list1[1]:
+            return [list1[0],list1[1]]
+        else:
+            return list1
+    elif length > 2:
+        if length % 2 == 0:
+            half_length = length / 2
+        else:
+            half_length = (length -1) /2
+        a_half = merge_sort(list1[0:half_length])
+        another_half = merge_sort(list1[half_length:length])
+        sorted_list = merge(another_half,a_half)
+        return sorted_list
+# Function to generate all strings for the word wrangler game
+
+def gen_all_strings(word):
+    """
+    Generate all strings that can be composed from the letters in word
+    in any order.
+
+    Returns a list of all strings that can be formed from the letters
+    in word.
+
+    This function should be recursive.
+    """
+    new_list = list()
+    if len(word) == 1:
+        word = list(word)
+        word.append('')
+        return word
+    else:
+        for letter in word:
+            word_copy = list(word)
+            process_list = []
+            first_part = letter
+            word_copy.remove(letter)
+            for dummy in range(len(word_copy)+1):
+                second_copy = list(word_copy)
+                second_copy.insert(dummy,first_part)
+                str(second_copy)
+                new_word = str()
+                for letter in second_copy:
+                    new_word += letter
+                new_list.append(new_word)
+            new_list.extend(gen_all_strings(word_copy))
+            copy_list = list(new_list)
+        for word in new_list:
+            copy_list.remove(word)
+            if word not in copy_list:
+                copy_list.append(word)
+    return copy_list
+
+# Function to load words from a file
+
+def load_words(filename):
+    """
+    Load word list from the file named filename.
+
+    Returns a list of strings.
+    """
+    file_name = 'codeskulptor-assets.commondatastorage.googleapis.com/assets_scrabble_words3.txt'
+    url = codeskulptor.file2url(file_name)    
+    net_file = urllib2.urlopen(url)
+    return net_file
+
+def run():
+    """
+    Run game.
+    """
+    words = load_words(WORDFILE)
+    wrangler = provided.WordWrangler(words, remove_duplicates, 
+                                     intersect, merge_sort, 
+                                     gen_all_strings)
+    provided.run_game(wrangler)
+
+# Uncomment when you are ready to try the game
+#run()
+
+    
+    
