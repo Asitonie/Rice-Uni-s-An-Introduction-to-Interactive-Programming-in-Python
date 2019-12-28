@@ -1,0 +1,167 @@
+"""
+Clone of 2048 game.
+"""
+
+import poc_2048_gui
+import random
+import simplegui
+# Directions, DO NOT MODIFY
+UP = 1
+DOWN = 2
+LEFT = 3
+RIGHT = 4
+
+# Offsets for computing tile indices in each direction.
+# DO NOT MODIFY this dictionary.
+OFFSETS = {UP: (1, 0),
+           DOWN: (-1, 0),
+           LEFT: (0, 1),
+           RIGHT: (0, -1)}
+
+def merge(line):
+    """
+    Helper function that merges a single row or column in 2048
+    """
+    new_line = []
+    count = 0
+    process_line = list(line)
+    for num_1 in range(len(line)-1):
+        pair = False
+        for num_2 in range(num_1+1,len(line)):
+            if line[num_1] == 0:
+                pair = True
+            elif line[num_2] == line[num_1] and not pair:
+                new_line.append(2*line[num_1])
+                process_line[num_2] = 0
+                pair = True
+            elif line[num_2] !=0 and not pair:
+                pair = True
+                new_line.append(line[num_1])
+        if not pair:
+            new_line.append(line[num_1])
+        line = list(process_line)
+    new_line.append(line[-1])
+    number_of_zero = len(line)-len(new_line)
+    while count < number_of_zero:
+        new_line.append(0)
+        count+=1
+    return new_line  
+
+class TwentyFortyEight:
+    """
+    Class to run the game logic.
+    """
+
+    def __init__(self, grid_height, grid_width):
+        # replace with your code
+        self.height = grid_height
+        self.width = grid_width
+        self.reset()
+        self.movedic = {}
+        self.dicmove = {}
+        up = [(0,col) for col in range(self.width)]
+        down = [(self.height - 1,col) for col in range(self.width)]
+        left = [(row,0) for row in range(self.height)]
+        right = [(row,self.width -1) for row in range(self.height)]
+        self.dicmove[1] = up
+        self.dicmove[2] = down
+        self.dicmove[3] = left
+        self.dicmove[4] = right
+    def reset(self):
+        """
+        Reset the game so the grid is empty except for two
+        initial tiles.
+        """
+        # replace with your code
+        self.dic = {}
+        for col in range(self.height):
+            for row in range(self.width):
+                self.dic[(col,row)] = 0
+        self.new_tile()
+        self.new_tile()
+    def __str__(self):
+        """
+        Return a string representation of the grid for debugging.
+        """
+        # replace with your code
+        test = str()
+        for pos in self.dic:
+            test = test + "In the pos"+str(pos)+"is "+ str(self.dic[pos])+"\n"
+        return test
+    def get_grid_height(self):
+        """
+        Get the height of the board.
+        """
+        return self.height
+
+    def get_grid_width(self):
+        """
+        Get the width of the board.
+        """
+        return self.width
+
+    def move(self, direction):
+        """
+        Move all tiles in the given direction and add
+        a new tile if any tiles moved.
+        """
+        # replace with your code
+        change = False
+        for col in range(len(self.dicmove[direction])):
+            line = []
+            tile = self.dicmove[direction][col]
+            line.append(tile)
+            process = []
+            while tile in self.dic:
+                tile = list(tile)
+                tile[0] += OFFSETS[direction][0]
+                tile[1] += OFFSETS[direction][1]
+                tile = tuple(tile)
+                if tile in self.dic:
+                    line.append(tile)
+            for tile in line:
+                process.append(self.dic[tile])
+            if process != merge(process):
+                change = True           
+            process = merge(process)
+            for num in range(len(line)):
+                self.dic[line[num]] = process[num]
+        if change == True:       
+            self.new_tile()
+    def new_tile(self):
+        """
+        Create a new tile in a randomly selected empty
+        square.  The tile should be 2 90% of the time and
+        4 10% of the time.
+        """
+        # replace with your code
+        count = 0
+        random_field = [2,2,2,2,2,2,2,2,2,4]
+        blank = False
+        for num in self.dic:
+            if self.dic[num] == 0:
+                blank  = True
+        while count < 1 and blank == True:
+            tile_pos = (random.randrange(self.height),
+                        random.randrange(self.width))
+            if self.dic[tile_pos] == 0:
+                self.dic[tile_pos] = random.choice(random_field)
+                count += 1
+            
+
+    def set_tile(self, row, col, value):
+        """
+        Set the tile at position row, col to have the given value.
+        """
+        # replace with your code
+        self.dic[(row,col)] = value
+
+    def get_tile(self, row, col):
+        """
+        Return the value of the tile at position row, col.
+        """
+        # replace with your code
+        return self.dic[(row,col)]
+
+
+poc_2048_gui.run_gui(TwentyFortyEight(4,4))
