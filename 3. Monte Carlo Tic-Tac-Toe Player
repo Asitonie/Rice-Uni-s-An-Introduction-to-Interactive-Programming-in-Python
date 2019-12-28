@@ -1,0 +1,87 @@
+"""
+Monte Carlo Tic-Tac-Toe Player
+"""
+
+import random
+import poc_ttt_gui
+import poc_ttt_provided as provided
+
+# Constants for Monte Carlo simulator
+# You may change the values of these constants as desired, but
+#  do not change their names.
+NTRIALS = 100         # Number of trials to run
+SCORE_CURRENT = 1.0 # Score for squares played by the current player
+SCORE_OTHER = 1.0   # Score for squares played by the other player
+    
+# Add your functions here.
+def mc_trial(board,player):  
+    '''random play a whole game'''
+    while board.check_win() == None:
+        player = provided.switch_player(player)
+        empty_list = board.get_empty_squares()
+        next_move = random.choice(empty_list)
+        board.move(next_move[0],next_move[1],player)
+    return board
+def mc_update_scores(scores,board,player):
+    '''calculate the scores of whole game and add to total'''
+    for row in range(board.get_dim()):
+        for col in range(board.get_dim()):
+            if board.check_win() == player: 
+                if  board.square(row,col) == player:
+                    scores[row][col] += SCORE_CURRENT
+                elif  board.square(row,col) == provided.EMPTY:
+                    scores[row][col] += 0
+                else :
+                    scores[row][col] += -SCORE_OTHER
+            elif board.check_win() == provided.DRAW:
+                  scores[row][col] += 0
+            elif  board.check_win() != player:
+                if board.square(row,col) == player:
+                    scores[row][col] += -SCORE_CURRENT
+                elif  board.square(row,col) == provided.EMPTY:
+                    scores[row][col] += 0
+                else:
+                    scores[row][col]+= SCORE_OTHER    
+
+def get_best_move(board,scores):
+    '''choose the best move'''
+    best_move = []
+    max_score = 0
+    for row in range(board.get_dim()):
+        for col in range(board.get_dim()):
+            if scores[row][col] > max_score: 
+                if board.get_empty_squares() != []:
+                    if board.square(row,col) == provided.EMPTY:
+                        max_score = scores[row][col] 
+                else:
+                        max_score = scores[row][col] 
+    for row in range(board.get_dim()):
+        for col in range(board.get_dim()):
+            if board.get_empty_squares() != []:
+                if scores[row][col]  == max_score and board.square(row,col) == provided.EMPTY:
+                    best_move.append((row,col))
+            else:
+                    best_move.append((row,col))
+    if best_move != []:
+        return random.choice(best_move)
+
+def mc_move(board,player,trials):
+    '''take a move! '''
+    count = 0
+    total = [] 
+    for row in range(board.get_dim()):
+        total.append([])
+        for line in range(board.get_dim()):
+            total[row].append(0.0)
+    while count < trials:
+        current_board = board.clone()
+        current_board = mc_trial(current_board,player)                                                                       
+        mc_update_scores(total,current_board,player)
+        count += 1
+    return get_best_move(board,total)
+# Test game with the console or the GUI.  Uncomment whichever 
+# you prefer.  Both should be commented out when you submit 
+# for testing to save time.
+
+#provided.play_game(mc_move, NTRIALS, False)        
+#poc_ttt_gui.run_gui(3, provided.PLAYERX, mc_move, NTRIALS, False)
